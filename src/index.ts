@@ -4,7 +4,7 @@
  */
 export interface IThemingInstruction {
   theme?: string;
-  default?: string;
+  defaultValue?: string;
   rawString?: string;
 };
 
@@ -33,22 +33,15 @@ const MAX_STYLE_CONTENT_SIZE = 10000;
 /**
  * Loads a set of style text. If it is registered too early, we will register it when the window.load
  * event is fired.
- * @param {string} styleText Style to register.
+ * @param {string | ThemableArray} styles Themable style text to register.
  */
-export function loadStyles(styles: string) {
-  loadThemableArray(splitStyles(styles));
-}
-
-/**
- * Loads a set of style text. If it is registered too early, we will register it when the window.load event
- * is fired.
- * @param {string} styleText Style to register.
- */
-export function loadThemableArray(styles: ThemableArray) {
+export function loadStyles(styles: string | ThemableArray) {
   if (_areUnlimitedStylesheetsSupported === null) {
     _areUnlimitedStylesheetsSupported = !shouldUseCssText();
   }
-  applyThemableStyles(styles);
+
+  let styleParts: ThemableArray = Array.isArray(styles) ? styles : splitStyles(styles);
+  applyThemableStyles(styleParts);
 }
 
 /**
@@ -113,7 +106,7 @@ function resolveThemableArray(splitStyleArray: ThemableArray): string {
       if (themeSlot != null) {
         // A theming annotation. Resolve it.
         let themedValue = _theme ? _theme[themeSlot] : null;
-        let defaultValue = currentValue.default;
+        let defaultValue = currentValue.defaultValue;
 
         // Warn to console if we hit an unthemed value even when themes are provided.
         // Allow the themedValue to be null to explicitly request the default value.
@@ -155,7 +148,7 @@ export function splitStyles(styles: string): ThemableArray {
 
       result.push({
         theme: tokenMatch[1],
-        default: tokenMatch[2] // May be undefined
+        defaultValue: tokenMatch[2] // May be undefined
       });
 
       // index of the first character after the current match
